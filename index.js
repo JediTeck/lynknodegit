@@ -18,7 +18,8 @@ async function checkURL(url) {
 
 async function sendToDiscord(message) {
     const webhookUrl = 'https://discord.com/api/webhooks/1321636462071910431/6W-uefikZv11bzhN3OCBPvrVOP8HAUiB7VMldf6X9RgnJAHAZm3UGINXB_fiGeMr2jZG';
-    const payload = { content: message };
+    //const payload = { content: message };
+    const payload = { content: message.replace(/(https?:\/\/\S+)/g, '<$1>') };
 
     try {
         const response = await fetch(webhookUrl, {
