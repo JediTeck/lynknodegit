@@ -1,0 +1,24 @@
+name: Post to Discord Webhook
+
+on:
+  schedule:
+    - cron: "*/10 * * * *" # Every 10 minutes
+
+jobs:
+  post-to-webhook:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run webhook script
+        run: node index.js
