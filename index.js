@@ -17,7 +17,7 @@ async function checkURL(url) {
 }
 
 async function sendToDiscord(message) {
-    const webhookUrl = 'https://discord.com/api/webhooks/1321636462071910431/6W-uefikZv11bzhN3OCBPvrVOP8HAUiB7VMldf6X9RgnJAHAZm3UGINXB_fiGeMr2jZG';
+    const webhookUrl = 'https://discord.com/api/webhooks/1321671942704594945/siKgnPbVB7jTJ2iHAY1s8r6AwY3lpRzL395F5LVyFfUj8Q5PHwLqnEBnjpfvvryYd4Ia';
     //const payload = { content: message };
     const payload = { content: message.replace(/(https?:\/\/\S+)/g, '<$1>') };
 
