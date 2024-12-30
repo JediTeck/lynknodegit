@@ -51,9 +51,9 @@ async function main() {
     let message = '';
 
     if (failed.length === 0) {
-        message = `✅ All URLs are up and running successfully:\n${passed.join('\n')}`;
+        message = `✅ All URLs are up and running successfully:\n${passed.join('-')}`;
     } else {
-        message = `⚠️ URL Status Check Results:\n\n✅ Passed:\n${passed.join('\n')}\n\n❌ Failed:\n`;
+        message = `⚠️ URL Status Check Results:--✅ Passed:\n${passed.join('-')}\n\n❌ Failed:-`;
         failed.forEach(result => {
             message += `${result.url} (${result.status})\n`;
         });
