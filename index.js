@@ -25,7 +25,8 @@ async function checkChatbot(url) {
         // Skip GET check since we know POST works
         console.log('Sending POST request with test message...');
         const testMessage = {
-            message: "What is Lynk?"
+            message: "What is Lynk?, from Jediteck 2025",
+            timestamp
         };
         console.log('POST request body:', JSON.stringify(testMessage));
         
@@ -123,9 +124,10 @@ async function main() {
         day: 'numeric',
         hour: '2-digit', 
         minute: '2-digit',
-        hour12: true
+        hour12: true,
+        timeZone: 'America/Los_Angeles'
     };
-    const timestamp = now.toLocaleString('en-US', options);
+    const timestamp = now.toLocaleString('en-US', options) + ' PT';
     let message = `(${timestamp}) --`;
 
     // URL Status Section
