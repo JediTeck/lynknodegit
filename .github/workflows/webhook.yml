@@ -2,7 +2,7 @@ name: Post to Discord Webhook
 
 on:
   schedule:
-    - cron: "*/10 * * * *" # Run every 10 minutes
+    - cron: "0 * * * *" # Run every hour at minute 0
   workflow_dispatch: # Allows manual trigger
 
 jobs:
