@@ -19,61 +19,37 @@ async function checkURL(url) {
 async function checkChatbot(url) {
     const chatEndpoint = `https://chatlynk.vercel.app/api/chat`;
     const timestamp = new Date().toISOString();
-    console.log(`\n🔍 Testing chatbot at ${chatEndpoint}`);
     
     try {
-        // Skip GET check since we know POST works
-        console.log('Sending POST request with test message...');
+        console.log(`🔍 Sending POST request to chatbot at ${chatEndpoint}...`);
         const testMessage = {
             message: "What is Lynk?, from Jediteck 2025",
             timestamp
         };
-        console.log('POST request body:', JSON.stringify(testMessage));
         
         const postResponse = await fetch(chatEndpoint, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(testMessage)
         });
-        
-        console.log('POST response status:', postResponse.status);
-        
+
         if (postResponse.ok) {
-            const responseText = await postResponse.text();
-            console.log('✅ Chatbot response:', responseText);
-            return { 
-                url, 
-                chatStatus: 'success',
-                response: responseText,
-                timestamp
-            };
+            console.log(`✅ Chatbot responded successfully!`);
+            return { url, chatStatus: 'success' };
         } else {
             const errorText = await postResponse.text();
             const error = `POST check failed with status: ${postResponse.status} - ${errorText}`;
-            console.error('❌', error);
-            return { 
-                url, 
-                chatStatus: 'failed',
-                error,
-                timestamp
-            };
+            console.error(`❌ ${error}`);
+            return { url, chatStatus: 'failed', error };
         }
     } catch (error) {
         console.error('❌ Error checking chatbot:', error);
-        return { 
-            url, 
-            chatStatus: 'failed',
-            error: error.message,
-            timestamp
-        };
+        return { url, chatStatus: 'failed', error: error.message };
     }
 }
 
 async function sendToDiscord(message) {
     const webhookUrl = 'https://discord.com/api/webhooks/1321671942704594945/siKgnPbVB7jTJ2iHAY1s8r6AwY3lpRzL395F5LVyFfUj8Q5PHwLqnEBnjpfvvryYd4Ia';
-    //const payload = { content: message };
     const payload = { content: message.replace(/(https?:\/\/\S+)/g, '<$1>') };
 
     try {
@@ -84,7 +60,7 @@ async function sendToDiscord(message) {
         });
 
         if (response.ok) {
-            console.log('✅ Message sent successfully to Discord!');
+            console.log('✅ Failure alert sent to Discord.');
         } else {
             console.error('❌ Failed to send message to Discord:', response.statusText);
         }
@@ -98,26 +74,24 @@ async function main() {
         'https://lynkai.jediteck.com/',
         'https://jediteck.com/'
     ];
-
-    // URLs to check for chatbot
     const chatbotUrls = ['https://jediteck.com/'];
 
     console.log('🌐 Checking URL availability...');
     const results = await Promise.all(urls.map(checkURL));
-    const passed = results.filter(result => result.status === 'success').map(result => result.url);
     const failed = results.filter(result => result.status !== 'success');
 
     console.log('🤖 Starting chatbot health check...');
-    const urlsToCheck = passed.filter(url => chatbotUrls.includes(url));
-    console.log(`Found ${urlsToCheck.length} URLs to check for chatbot:`, urlsToCheck);
-    
+    const urlsToCheck = results.filter(result => result.status === 'success' && chatbotUrls.includes(result.url));
     const chatbotResults = await Promise.all(urlsToCheck.map(checkChatbot));
-    console.log('Chatbot check results:', JSON.stringify(chatbotResults, null, 2));
-    
-    const chatbotPassed = chatbotResults.filter(result => result.chatStatus === 'success');
     const chatbotFailed = chatbotResults.filter(result => result.chatStatus === 'failed');
 
-    // Create a single comprehensive status message
+    // If no failures, exit without sending a message
+    if (failed.length === 0 && chatbotFailed.length === 0) {
+        console.log('✅ All systems operational. No alerts needed.');
+        return;
+    }
+
+    // If failures exist, build and send a Discord message
     const now = new Date();
     const options = { 
         month: 'short', 
@@ -128,33 +102,17 @@ async function main() {
         timeZone: 'America/Los_Angeles'
     };
     const timestamp = now.toLocaleString('en-US', options) + ' PT';
-    let message = `(${timestamp}) --`;
+    let message = `🚨 (${timestamp}) -- Alert: System Issues Detected!\n`;
 
-    // URL Status Section
-//    message += `📡 URL Status:\n`;
-    if (passed.length > 0) {
-        message += ` -- ✅ Online:${passed.map(url => `• ${url}`).join('-')}-`;
-    }
     if (failed.length > 0) {
         message += `❌ Offline:\n${failed.map(result => `• ${result.url} (${result.status})`).join('\n')}\n`;
     }
 
-    // Chatbot Status Section
- //   message += `\n🤖 Chatbot Status:\n`;
-    if (chatbotPassed.length > 0) {
-        chatbotPassed.forEach(result => {
-            message += ` - ✅ chatbotOnline`;
-//            message += `✅ Response received:\n`;
-//            message += `• ${result.response}\n`;
-        });
-    } else if (chatbotFailed.length > 0) {
-        chatbotFailed.forEach(result => {
-            message += `❌ Error:\n`;
-            message += `• ${result.error}\n`;
-        });
+    if (chatbotFailed.length > 0) {
+        message += `🤖 Chatbot Errors:\n${chatbotFailed.map(result => `• ${result.url} - ${result.error}`).join('\n')}\n`;
     }
 
-    console.log('📝 Final Discord message:', message);
+    console.log('🚨 Sending failure alert to Discord:', message);
     await sendToDiscord(message);
 }
 
